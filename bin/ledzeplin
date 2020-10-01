@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+#  ---------------------------------------------------------------------------
+
+NC='\033[0m' # No Color
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+BWHITE='\033[1;37m'
+
+SCPT="/usr/local/bin/blackdog.scpt"
+ACCOUNTS="$HOME/.config/ledzeplin"
+KC_KIND="automation"
+KC_SERVICE="zeplin.account"
+
+if [ ! -e "$ACCOUNTS" ]; then
+    mkdir -p "$HOME/.config"
+    touch "$ACCOUNTS"
+fi
+
+_set () {
+    read -p "username: " user
+    read -s -p "password: " pass
+
+    security add-generic-password -a "$user" -D "$KC_KIND" -l "ledzeplin ($user)" -s "$KC_SERVICE" -w "$pass"
+
+    echo "$user" >> "$ACCOUNTS"
+}
+
+_get () {
+    local user="$1"
+    local pass 
+    
+    pass=$( security 2>&1 >/dev/null find-generic-password -gs $KC_SERVICE -a "$user" | grep 'password:' )
+
+    if [ ! -z "$pass" ]; then
+        pass=$( security find-generic-password -s $KC_SERVICE -a "$user" -w )
+        echo "$pass"
+        return
+    fi
+}
+
+_login () {
+    local user="$2"
+    local pass
+
+    if [ "$#" -gt 2 ] || [ "$#" -lt 2 ]; then
+        _error "Invalid number of arguments"
+        exit 1
+    fi
+
+    pass=$( _get "$user" )
+
+    if [ -z "$pass" ]; then
+        _error "Failed to retrieve password"
+        exit 1
+    fi
+
+    if [ "$1" == "login" ]; then
+        OUTPUT="$(osascript "$SCPT" login "$user" "$pass")"
+    else
+        osascript "$SCPT" switch "$user" "$pass"
+    fi
+
+    echo -e "${BLUE}==>${NC} ${BWHITE}$OUTPUT${NC}"
+}
+
+_logout () {
+    OUTPUT="$(osascript "$SCPT" logout)"
+    echo -e "${BLUE}==>${NC} ${BWHITE}$OUTPUT${NC}"
+}
+
+_help () {
+    echo "Usage:"
+    echo -e "\tledzeplin switch [username]"
+    echo -e "\tledzeplin login [username]"
+    echo -e "\tledzeplin logout"
+    echo -e "\tledzeplin account"
+    echo -e "\tledzeplin help"
+    exit 1 
+}
+
+_error () {
+    local message="$1"
+    echo -e "${RED}Error: ${NC}$message"
+}
+
+if [ "$#" -gt 0 ]; then
+    case "$1" in
+        login|switch)
+            _login "$@";;
+        logout)
+            _logout ;;
+        account)
+            _set ;;
+        help)
+            _help ;;
+        *)
+            _error "Unknown command $1"
+            _help
+        ;;
+    esac
+else
+    _help
+fi
