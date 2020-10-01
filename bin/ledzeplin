@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #  ---------------------------------------------------------------------------
 
-NC='\033[0m' # No Color
+NC='\033[0m' # no color
 RED='\033[0;31m'
 BLUE='\033[0;34m'
-BWHITE='\033[1;37m'
+BWHITE='\033[1;37m' # bold white
 
 SCPT="/usr/local/bin/blackdog.scpt"
 ACCOUNTS="$HOME/.config/ledzeplin"
@@ -57,7 +57,7 @@ _login () {
     if [ "$1" == "login" ]; then
         OUTPUT="$(osascript "$SCPT" login "$user" "$pass")"
     else
-        osascript "$SCPT" switch "$user" "$pass"
+        OUTPUT="$(osascript "$SCPT" switch "$user" "$pass")"
     fi
 
     echo -e "${BLUE}==>${NC} ${BWHITE}$OUTPUT${NC}"
