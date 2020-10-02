@@ -6,7 +6,7 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 BWHITE='\033[1;37m' # bold white
 
-SCPT="/usr/local/bin/blackdog.scpt"
+SCPT="$(brew --prefix ledzeplin)/libexec/blackdog.scpt"
 ACCOUNTS="$HOME/.config/ledzeplin"
 KC_KIND="automation"
 KC_SERVICE="zeplin.account"
